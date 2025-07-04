@@ -1,3 +1,15 @@
+import TelegramBot from 'node-telegram-bot-api';
+
+const bot = new TelegramBot(`7912329677:AAETxCn5vms-r5QKVNMMppOgmaWqhfFL2mc`, {polling: true})
+
+bot.on('message',msg => {
+    const { chat: {id}} = msg
+    bot.sendMessage(id,'Привет, октагон!');
+
+})
+
+
+
 const express = require('express');
 const app = express();
 
