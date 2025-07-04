@@ -2,11 +2,30 @@ import TelegramBot from 'node-telegram-bot-api';
 
 const bot = new TelegramBot(`7912329677:AAETxCn5vms-r5QKVNMMppOgmaWqhfFL2mc`, {polling: true})
 
+/*
 bot.on('message',msg => {
     const { chat: {id}} = msg
     bot.sendMessage(id,'Привет, октагон!');
 
+})*/
+
+
+bot.onText(/\/help/,  msg => {
+    const {chat: {id}} = msg
+    bot.sendMessage(id, `site - отправляет в чат ссылку на сайт октагона. 
+    creator - отправляет в чат ваше ФИО`);
 })
+
+bot.onText(/\/site/, msg => {
+    const {chat: {id}} = msg;
+    bot.sendMessage(id, 'сайт Октагона: https://octagon.su');
+});
+
+// Команда /creator - отправляет информацию о создателе
+bot.onText(/\/creator/, msg => {
+    const {chat: {id}} = msg;
+    bot.sendMessage(id, 'Создатель бота: Порохов Данила');
+});
 
 
 
