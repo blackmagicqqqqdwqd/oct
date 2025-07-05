@@ -12,8 +12,11 @@ bot.on('message',msg => {
 
 bot.onText(/\/help/,  msg => {
     const {chat: {id}} = msg
-    bot.sendMessage(id, `site - отправляет в чат ссылку на сайт октагона. 
-    creator - отправляет в чат ваше ФИО`);
+    bot.sendMessage(id, `/site - отправляет в чат ссылку на сайт октагона. 
+    /creator - отправляет в чат ваше ФИО 
+    /randomItem - случайный предмет
+    /getItemByID [id] - найти предмет
+    /deleteItem [id] - удалить предмет`);
 })
 
 bot.onText(/\/site/, msg => {
@@ -21,12 +24,11 @@ bot.onText(/\/site/, msg => {
     bot.sendMessage(id, 'сайт Октагона: https://octagon.su');
 });
 
-// Команда /creator - отправляет информацию о создателе
+
 bot.onText(/\/creator/, msg => {
     const {chat: {id}} = msg;
     bot.sendMessage(id, 'Создатель бота: Порохов Данила');
 });
-
 
 
 const express = require('express');
@@ -34,6 +36,80 @@ const app = express();
 
 const mysql = require("mysql2");
   
+
+
+const connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  database: "ChatBotTests"
+});
+
+
+bot.onText(/\/randomItem/, (msg) => {
+    const { chat: { id } } = msg;
+    
+    connection.query('SELECT * FROM Items ORDER BY RAND() LIMIT 1',
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return bot.sendMessage(id, 'Ошибка БД');
+            }
+            
+            if (results.length === 0) {
+                return bot.sendMessage(id, 'В базе нет предметов');
+            }
+            
+            const item = results[0];
+            bot.sendMessage(id, `(${item.id}) - ${item.name}: ${item.desc}`);
+        }
+    );
+});
+
+
+
+
+bot.onText(/\/deleteItem (\d+)/, (msg, s) => {
+    const chatId = msg.chat.id;
+    const itemId = s[1];
+    
+  
+    connection.query(
+        'DELETE FROM Items WHERE id = ?', [itemId],
+        (err, results) => {
+            if (err) {
+                return bot.sendMessage(chatId, "Ошибка сервера при удалении");
+            }
+            
+            if (results.affectedRows === 0) {
+                bot.sendMessage(chatId, `${itemId} нету`);
+            } else {
+                bot.sendMessage(chatId, `${itemId} подбит`);
+            }
+        }
+    );
+});
+
+
+
+bot.onText(/\/getItemByID (\d+)/, (msg, s) => {
+    const chatId = msg.chat.id;
+    const itemId = s[1];
+    
+
+    connection.query('SELECT * FROM Items WHERE id = ? LIMIT 1',[itemId],
+        (err, results) => {
+            if (err) return bot.sendMessage(chatId, "Ошибка сервера");
+            
+            
+            if (results.length === 0) {
+                bot.sendMessage(chatId, `нет такого `);
+            } else {
+                let item = results[0];
+                bot.sendMessage(chatId, `(${item.id}) - ${item.name}: ${item.desc}`);
+            }
+        }
+    );
+});
 
 
 
@@ -75,11 +151,6 @@ app.get('/dynamic', (request, response) => {
 
  
 
-const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  database: "ChatBotTests"
-});
 
 connection.connect(function(err){
     if (err) {
